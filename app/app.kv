@@ -1,0 +1,117 @@
+<Menu>:
+    BoxLayout:
+        orientation: "vertical"
+
+        ActionBar:
+            ActionView:
+                ActionPrevious:
+                    title: "Chat"
+                    on_release: app.stop("Are you sure you want to leave ?")
+
+
+        BoxLayout:
+            orientation: "vertical"
+            padding: self.width / 100 * 20
+            spacing: "30dp"
+
+            TextInput:
+                id: username
+                font_size: "25dp"
+                multiline: False
+                size: (self.parent.width / 100 * 60, self.minimum_height)
+                size_hint: (None, None)
+                text: "Username"
+
+            TextInput:
+                id: ip
+                font_size: "25dp"
+                multiline: False
+                size: (self.parent.width / 100 * 60, self.minimum_height)
+                size_hint: (None, None)
+                text: "IP Address"
+
+            TextInput:
+                id: port
+                font_size: "25dp"
+                multiline: False
+                size: (self.parent.width / 100 * 60, self.minimum_height)
+                size_hint: (None, None)
+                text: "Port Number"
+
+            Label:
+                id: message
+                color: 1,0,0,1
+                font_size: "25dp"
+
+
+        BoxLayout:
+            padding: "5dp"
+            size_hint_y: None
+            spacing: "5dp"
+            width: self.minimum_height
+
+            Button: 
+                font_size: "25dp"
+                on_release: app.createConnection("server")
+                size_hint_y: None
+                text: "Create Server"
+                width: "30dp"
+
+            Button:
+                font_size: "25dp"
+                on_release: app.createConnection("client")
+                size_hint_y: None
+                text: "Connect"
+                width: "30dp"
+
+
+<MessageBox>:
+    BoxLayout:
+        orientation: "vertical"
+
+        ActionBar:
+            ActionView:
+                ActionPrevious:
+                    title: "Chat"
+                    on_release: app.root.current = "menu"
+                ActionButton:
+                    id: connection
+
+        ScrollView:
+            BoxLayout:
+                id: box
+                height: self.minimum_height
+                orientation: "vertical"
+                padding: "20dp"
+                size_hint_y: None
+
+        BoxLayout:
+            height: self.minimum_height
+            padding: "2dp"
+            size_hint_y: None
+            spacing: "2dp"
+
+            TextInput:
+                id: input
+                font_size: "15dp"
+                height: "40dp"
+                multiline: False
+                size_hint_y: None
+
+            Button:
+                font_size: "20dp"
+                height: "40dp"
+                on_release: app.connection.send(root.getMessage())
+                size_hint: (None, None)
+                text: "Send"
+                width: "100dp"
+
+
+<ScreenManager>:
+    Menu:
+        name: "menu"
+
+    MessageBox:
+        name: "messageBox"
+
+
