@@ -5,10 +5,19 @@ import socket
 
 class Server(Connection):
 
+    """
+    Classe para criar e gerenciar um servidor.
+    """
+
     __connections = []
 
 
-    def __init__(self, address, username):
+    def __init__(self, address: tuple, username: str):
+
+        """
+        Address: Endereço do servidor
+        Username: Nome de usuário
+        """
 
         self.username = username
         self.socket = socket.socket()
@@ -18,27 +27,38 @@ class Server(Connection):
 
     def __acceptConnections(self):
 
+        """
+        Aguarda e aceita solicitações de conexão com o servidor.
+        """
+
         while self.__running:
+
             try: connection, address = self.socket.accept()
             except: break
             
-            user = {"address":address, "connection":connection, "online": True}
+            user = {"address":address, "connection":connection, "online": True, "username": None}
             self.__connections.append(user)
 
             listener = Thread(target = lambda: self.__messageListener(user))
             listener.start()
+
         self.__running = False
 
 
     def __messageListener(self, user):
 
+        """
+        Recebe as mensagens de um cliente.
+        """
+
         connection = user["connection"]
-        username = connection.recv(1024).decode()
-        connection.settimeout(5)
+        user["username"] = connection.recv(1024).decode()
 
-        self.__sendAll(username + " joined the chat.")
+        self.__sendToAll(self.warningMessages["connected"].format(user["username"]))
+        connection.settimeout(self.timeout)
 
-        while user["online"]:
+        while user["online"] and self.__running:
+
             try: 
                 message = connection.recv(1024)
                 if not message: break
@@ -46,46 +66,73 @@ class Server(Connection):
             except socket.timeout: continue
             except: break
 
-            if message: 
-                self.__sendAll(username + " : " + message.decode(), author = user)
+            self.__sendToAll(user["username"] + " : " + message.decode(), author = user)
 
-        connection.close()
+        if self.__running: self.__removeUser(user)
+        self.__sendToAll(self.warningMessages["disconnected"].format(user["username"]), author = user)
+
+
+    def __removeUser(self, user):
+
+        """
+        Encerra a conexão de um único usuário.
+        """
+
+        user["connection"].close()
+        user["online"] = False
         self.__connections.remove(user)
-        self.__sendAll(username + " has left the chat.", author = user)
 
 
-    def __sendAll(self, message, author = None):
+    def __sendToAll(self, message, author = None):
+
+        """
+        Envia uma mensagem para todos os clientes, 
+        exceto para o autor da mensagem.
+        """
 
         self.messageCallback(message)
 
         for user in self.__connections:
 
             if not user is author:
-
-                try:
-                    user["connection"].send((message + self.separator).encode())
-                except:
-                    user["online"] = False
+                try: user["connection"].send((message + self.separator).encode())
+                except: user["online"] = False
 
 
-    def close(self):
+    def close(self) -> None:
 
-        for user in self.__connections:
-            user["online"] = "False"
-            user["connection"].close()
-        self.socket.close()
+        """
+        Desliga o servidor, encerrando todas 
+        as conexões dos clientes com ele.
+        """
+
         self.__running = False
 
+        for user in self.__connections:
+            self.__removeUser(user)
 
-    def run(self, messageCallback):
+        self.socket.close()
+
+
+    def run(self, messageCallback) -> None:
+
+        """
+        Inicia o servidor para receber e repassar 
+        as mensagens enviadas pelos clientes.
+        """
 
         self.__running = True
         self.messageCallback = messageCallback
         Thread(target = self.__acceptConnections).start()
 
 
-    def send(self, message):
-        self.__sendAll(self.username + " : " + message)
+    def send(self, message: str) -> None:
+
+        """
+        Envia mensagem do servidor para os outros clientes.
+        """
+
+        self.__sendToAll(self.username + " : " + message)
 
 
 

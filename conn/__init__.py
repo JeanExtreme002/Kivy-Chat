@@ -1,9 +1,24 @@
 class Connection(object):
 
+    """
+    Classe Abstrata.
+    """
+
     separator = "</[$sep2xOC#]/>"
+    
+    timeout = 5
 
-    def close(self): pass
+    warningMessages = {
+        "connected": "{} joined the chat.",
+        "connection_lost": "Lost connection to the server.",
+        "disconnected": "{} has left the chat."
+    }
 
-    def run(self): pass
+    def close(self): 
+        raise NotImplementedError
 
-    def send(self): pass
+    def run(self): 
+        raise NotImplementedError
+
+    def send(self): 
+        raise NotImplementedError

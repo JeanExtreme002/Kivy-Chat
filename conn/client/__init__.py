@@ -5,7 +5,16 @@ import socket
 
 class Client(Connection):
 
-    def __init__(self, address, username):
+    """
+    Classe para conectar-se a um servidor.
+    """
+
+    def __init__(self, address: tuple, username: str):
+
+        """
+        Address: Endereço do servidor
+        Username: Nome de usuário
+        """
 
         self.username = username
         self.socket = socket.socket()
@@ -15,7 +24,11 @@ class Client(Connection):
 
     def __messageListener(self):
 
-        self.socket.settimeout(5)
+        """
+        Recebe as mensagens do servidor.
+        """
+
+        self.socket.settimeout(self.timeout)
 
         while self.__running:
             try:
@@ -28,33 +41,45 @@ class Client(Connection):
             except:
                 break
 
-            if message:
-                messages = message.decode().split(self.separator)
+            messages = message.decode().split(self.separator)
 
-                for message in messages:
-                    self.messageCallback(message)
+            for message in messages:
+                self.messageCallback(message)
 
-        self.messageCallback("Lost connection to the server.")
+        self.messageCallback(self.warningMessages["connection_lost"])
         self.__running = False
 
 
-    def close(self):
+    def close(self) -> None:
+
+        """
+        Encerra conexão com o servidor.
+        """
+
         self.__running = False
         self.socket.close()
 
 
-    def run(self, messageCallback):
+    def run(self, messageCallback) -> None:
+
+        """
+        Inicia o recebimento de mensagens.
+        """
 
         self.__running = True
         self.messageCallback = messageCallback
         Thread(target = self.__messageListener).start()
 
 
-    def send(self, message):
+    def send(self, message: str) -> None:
+        
+        """
+        Envia uma mensagem ao servidor.
+        """
 
         if self.__running:
-            try:
-                self.socket.send(message.encode())
-            except:
-                self.__running = False
+
+            try: self.socket.send(message.encode())
+            except: self.__running = False
+
             self.messageCallback(self.username + " : " + message)

@@ -2,10 +2,22 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.image import Image
 from kivy.uix.popup import Popup
+import os
+
 
 class Confirm(Popup):
+    
+    """
+    Classe para criar um Popup de confirmação.
+    """
 
     def __init__(self, title, function, buttonText = ["Yes", "No"]):
+
+        """
+        Title: Título do Popup
+        Function: Função que será executada ao confirmar
+        ButtonText: Texto dos botões de confirmação e negação
+        """
 
         content = BoxLayout(orientation = "vertical", padding = "10dp")
 
@@ -16,8 +28,7 @@ class Confirm(Popup):
             size_hint = (None, None)
             )
 
-        image = Image(source = "images/warning.png")
-
+        image = Image(source = os.path.join("images","warning.png"))
         buttonBox = BoxLayout(spacing = 2)
 
         buttonBox.add_widget(

@@ -12,7 +12,7 @@ click [here](https://kivy.org/doc/stable/installation/installation-windows.html)
 the instructions.**
 
 - Kivy
-- Pygame
+- Pygame (Optional)
 
 # How to use it ?
 
