@@ -6,7 +6,7 @@
             ActionView:
                 ActionPrevious:
                     title: "Chat"
-                    on_release: app.stop("Are you sure you want to leave ?")
+                    on_release: app.stop()
 
 
         BoxLayout:
@@ -73,7 +73,7 @@
             ActionView:
                 ActionPrevious:
                     title: "Chat"
-                    on_release: app.root.current = "menu"
+                    on_release: root.close()
                 ActionButton:
                     id: connection
 

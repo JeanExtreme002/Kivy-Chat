@@ -67,15 +67,17 @@ class App(App):
             self.connection.close()
 
 
-    def stop(self, confirm = ""):
+    def stop(self, confirm = "", popup = None):
 
         """
-        Método para fechar a aplicação.
-        Param confirm: Esse parâmetro recebe um título para realizar uma confirmação.
+        Método para fechar o aplicativo.
+
+        Param confirm: Esse parâmetro recebe um título para realizar 
+        uma confirmação por uma janela pop-up.
         """
 
         if confirm:
-            Confirm(confirm, super().stop).open()
+            Confirm(confirm, self.stop).open()
         else:
             self.closeConnection()
             super().stop()
@@ -87,26 +89,6 @@ class Menu(Screen):
     Tela de menu onde o usuário pode inserir as informações
     de conexão e escolher entre criar ou conectar-se a um servidor.
     """
-
-    def close_by_keyboard(self, window, key, *args):
-
-        """
-        Fecha a aplicação através do botão de voltar.
-        """
-
-        if key == 27: 
-            return self.confirm()
-
-
-    def confirm(self, *args, **kwargs):
-
-        """
-        Confirma se o usuário deseja sair.
-        """
-
-        App.get_running_app().stop("Are you sure you want to leave ?")
-        return True
-
 
     def getInfo(self, validate = True):
 
@@ -124,18 +106,6 @@ class Menu(Screen):
             port = self.validate_port(port)
 
         return username, ip, port
-
-
-    def on_pre_enter(self):
-
-        Window.bind(on_request_close = self.confirm)
-        Window.bind(on_keyboard = self.close_by_keyboard)
-
-
-    def on_pre_leave(self):
-
-        Window.unbind(on_request_close = self.confirm)
-        Window.unbind(on_keyboard = self.close_by_keyboard)
 
 
     def validate_ip(self, ip):
@@ -194,24 +164,29 @@ class MessageBox(Screen):
     Tela para receber ou enviar mensagens.
     """
 
-    def close_by_keyboard(self, window, key, *args):
+    def close(self):
 
         """
-        Vai para o menu através do botão de voltar.
+        Fecha o chat e volta para o menu.
         """
 
-        if key == 27: 
+        def changeScreen(popup):
+
+            popup.dismiss()
             App.get_running_app().root.current = "menu"
+
+        Confirm("Are you sure you want to leave ?", changeScreen).open()
         return True
 
 
-    def confirm(self, *args, **kwargs):
+    def close_by_keyboard(self, window, key, *args):
 
         """
-        Confirma se o usuário deseja sair.
+        Fecha o chat e volta para o menu através do botão de voltar.
         """
 
-        App.get_running_app().stop("Are you sure you want to leave ?")
+        if key == 27: 
+            self.close()
         return True
 
 
@@ -245,9 +220,19 @@ class MessageBox(Screen):
             screen.ids.box.add_widget(label)
 
 
+    def stop(self, *args, **kwargs):
+
+        """
+        Fecha o aplicativo.
+        """
+
+        App.get_running_app().stop("Are you sure you want to leave ?")
+        return True
+
+
     def on_pre_enter(self):
 
-        Window.bind(on_request_close = self.confirm)
+        Window.bind(on_request_close = self.stop)
         Window.bind(on_keyboard = self.close_by_keyboard)
 
 
@@ -259,7 +244,7 @@ class MessageBox(Screen):
         screen = App.get_running_app().root.get_screen("messageBox")
         screen.ids.box.clear_widgets()
 
-        Window.unbind(on_request_close = self.confirm)
+        Window.unbind(on_request_close = self.stop)
         Window.unbind(on_keyboard = self.close_by_keyboard)
 
 

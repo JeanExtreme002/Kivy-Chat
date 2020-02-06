@@ -14,11 +14,6 @@ class Server(Connection):
 
     def __init__(self, address: tuple, username: str):
 
-        """
-        Address: Endereço do servidor
-        Username: Nome de usuário
-        """
-
         self.username = username
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind(address)

@@ -15,7 +15,7 @@ class Confirm(Popup):
 
         """
         Title: Título do Popup
-        Function: Função que será executada ao confirmar
+        Function: Função que será executada ao confirmar (é passado a instância de Popup na chamada)
         ButtonText: Texto dos botões de confirmação e negação
         """
 
@@ -34,7 +34,7 @@ class Confirm(Popup):
         buttonBox.add_widget(
             Button(
                 text = buttonText[0], font_size = "20dp",
-                on_release = lambda button: function(), 
+                on_release = lambda button: function(popup = self), 
                 size_hint_y = None, height = "50dp"
                 )
             )
