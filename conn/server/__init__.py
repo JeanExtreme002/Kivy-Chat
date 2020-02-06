@@ -20,7 +20,7 @@ class Server(Connection):
         """
 
         self.username = username
-        self.socket = socket.socket()
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind(address)
         self.socket.listen(0)
 
@@ -54,20 +54,29 @@ class Server(Connection):
         connection = user["connection"]
         user["username"] = connection.recv(1024).decode()
 
+        # Avisa que um novo usuário conectou-se ao servidor.
         self.__sendToAll(self.warningMessages["connected"].format(user["username"]))
+
         connection.settimeout(self.timeout)
 
+        # Obtém as informações do cliente enquanto ele 
+        # estiver online e o servidor rodando.
         while user["online"] and self.__running:
 
             try: 
                 message = connection.recv(1024)
                 if not message: break
 
-            except socket.timeout: continue
-            except: break
+            except socket.timeout: 
+                continue
 
+            except: 
+                break
+
+            # Repassa as informações para todos os clientes.
             self.__sendToAll(user["username"] + " : " + message.decode(), author = user)
 
+        # Encerra a conexão com o usuário e informa para os outros clientes que ele saiu.
         if self.__running: self.__removeUser(user)
         self.__sendToAll(self.warningMessages["disconnected"].format(user["username"]), author = user)
 
@@ -95,8 +104,10 @@ class Server(Connection):
         for user in self.__connections:
 
             if not user is author:
-                try: user["connection"].send((message + self.separator).encode())
-                except: user["online"] = False
+                try: 
+                    user["connection"].send((message + self.separator).encode())
+                except: 
+                    user["online"] = False
 
 
     def close(self) -> None:
@@ -132,7 +143,8 @@ class Server(Connection):
         Envia mensagem do servidor para os outros clientes.
         """
 
-        self.__sendToAll(self.username + " : " + message)
+        if message and not message.isspace():
+            self.__sendToAll(self.username + " : " + message)
 
 
 

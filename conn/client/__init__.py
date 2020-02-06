@@ -17,7 +17,7 @@ class Client(Connection):
         """
 
         self.username = username
-        self.socket = socket.socket()
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect(address)
         self.socket.send(username.encode())
 
@@ -41,11 +41,13 @@ class Client(Connection):
             except:
                 break
 
+            # Separa as mensagens recebidas do servidor.
             messages = message.decode().split(self.separator)
 
             for message in messages:
                 self.messageCallback(message)
 
+        # Avisa que a conexão com o servidor foi encerrada.
         self.messageCallback(self.warningMessages["connection_lost"])
         self.__running = False
 
@@ -77,7 +79,7 @@ class Client(Connection):
         Envia uma mensagem ao servidor.
         """
 
-        if self.__running:
+        if self.__running and message and not message.isspace():
 
             try: self.socket.send(message.encode())
             except: self.__running = False

@@ -32,16 +32,13 @@ class App(App):
         """
 
         menu = self.root.get_screen("menu")
-        messageBox = self.root.get_screen("messageBox")
+        username, ip , port = menu.getInfo()
 
-        username = menu.ids.username.text
-        ip , port = self.validateData(menu.ids.ip.text, menu.ids.port.text)
-
-        if not all((ip, port)):
-            if not ip: menu.ids.ip.text = "Invalid IP"
-            if not port: menu.ids.port.text = "Invalid Port"
+        if not all([username, ip, port]): 
             return -1
 
+        # Mostra na caixa de mensagens o endereço do servidor atual.
+        messageBox = self.root.get_screen("messageBox")
         messageBox.ids.connection.text = "%s:%i" % (ip, port)
 
         try:
@@ -52,6 +49,7 @@ class App(App):
 
             self.connection.run(messageBox.insertMessage)
 
+            # Apaga a mensagem de erro e vai para a caixa de mensagens.
             menu.ids.message.text = ""
             self.root.current = "messageBox"
             
@@ -73,8 +71,7 @@ class App(App):
 
         """
         Método para fechar a aplicação.
-
-        Confirm: Esse parâmetro recebe um título para realizar uma confirmação.
+        Param confirm: Esse parâmetro recebe um título para realizar uma confirmação.
         """
 
         if confirm:
@@ -84,24 +81,6 @@ class App(App):
             super().stop()
 
 
-    def validateData(self, ip, port) -> tuple:
-
-        """
-        Valida o endereço IP e o Port.
-        """
-
-        ip = ip.lower() if ip else "localhost"
-
-        if ip != "localhost":
-            if [n.isnumeric() for n in ip.split(".")].count(True) != 4:
-                ip = None 
-        try: 
-            port = int(port)
-        except: 
-            port = None
-        return ip, port
-
-
 class Menu(Screen):
 
     """
@@ -109,7 +88,7 @@ class Menu(Screen):
     de conexão e escolher entre criar ou conectar-se a um servidor.
     """
 
-    def closeByKeyBoard(self, window, key, *args):
+    def close_by_keyboard(self, window, key, *args):
 
         """
         Fecha a aplicação através do botão de voltar.
@@ -129,16 +108,84 @@ class Menu(Screen):
         return True
 
 
+    def getInfo(self, validate = True):
+
+        """
+        Obtém os dados inseridos pelo usuário.
+        """
+
+        username = self.ids.username.text
+        ip = self.ids.ip.text
+        port = self.ids.port.text
+
+        if validate:
+            username = self.validate_username(username)
+            ip = self.validate_ip(ip)
+            port = self.validate_port(port)
+
+        return username, ip, port
+
+
     def on_pre_enter(self):
 
         Window.bind(on_request_close = self.confirm)
-        Window.bind(on_keyboard = self.closeByKeyBoard)
+        Window.bind(on_keyboard = self.close_by_keyboard)
 
 
     def on_pre_leave(self):
 
         Window.unbind(on_request_close = self.confirm)
-        Window.unbind(on_keyboard = self.closeByKeyBoard)
+        Window.unbind(on_keyboard = self.close_by_keyboard)
+
+
+    def validate_ip(self, ip):
+
+        """
+        Valida o endereço IP.
+        """
+
+        ip = ip.lower() if ip else "localhost"
+
+        if ip != "localhost":
+
+            # Verifica se o endereço está no formato "xxx.xxx.xxx.xxx".
+            if [n.isnumeric() for n in ip.split(".")].count(True) != 4:
+                self.ids.ip.text = "Invalid IP"
+                return None
+        return ip 
+
+
+    def validate_port(self, port):
+
+        """
+        Valida o port number.
+        """
+
+        try: 
+            port = int(port)
+
+            if not 1 <= port <= 65535:
+                self.ids.port.text = "The port number must be 1 to 65535"
+                port = None
+
+        except ValueError:
+            self.ids.port.text = "Invalid Port"
+            port = None
+
+        finally: return port
+
+
+    def validate_username(self, username):
+
+        """
+        Valida o nome de usuário.
+        """
+
+        if username and not username.isspace():
+            return username
+        else:
+            self.ids.username.text = "Enter your username"
+            return None
 
 
 class MessageBox(Screen):
@@ -147,7 +194,7 @@ class MessageBox(Screen):
     Tela para receber ou enviar mensagens.
     """
 
-    def closeByKeyBoard(self, window, key, *args):
+    def close_by_keyboard(self, window, key, *args):
 
         """
         Vai para o menu através do botão de voltar.
@@ -201,18 +248,19 @@ class MessageBox(Screen):
     def on_pre_enter(self):
 
         Window.bind(on_request_close = self.confirm)
-        Window.bind(on_keyboard = self.closeByKeyBoard)
+        Window.bind(on_keyboard = self.close_by_keyboard)
 
 
     def on_pre_leave(self):
 
         App.get_running_app().closeConnection()
 
+        # Remove todas as mensagens da sessão.
         screen = App.get_running_app().root.get_screen("messageBox")
         screen.ids.box.clear_widgets()
 
         Window.unbind(on_request_close = self.confirm)
-        Window.unbind(on_keyboard = self.closeByKeyBoard)
+        Window.unbind(on_keyboard = self.close_by_keyboard)
 
 
 
