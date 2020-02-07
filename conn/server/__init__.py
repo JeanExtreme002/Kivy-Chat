@@ -31,7 +31,7 @@ class Server(Connection):
             try: connection, address = self.socket.accept()
             except: break
             
-            user = {"address":address, "connection":connection, "online": True, "username": None}
+            user = {"address":address, "connection":connection, "online": True, "username": "undefined"}
             self.__connections.append(user)
 
             listener = Thread(target = lambda: self.__messageListener(user))
@@ -140,6 +140,20 @@ class Server(Connection):
 
         if message and not message.isspace():
             self.__sendToAll(self.username + " : " + message)
+
+
+    @property 
+    def users(self):
+
+        """
+        Retorna o endereço e nome do usuário.
+        """
+
+        for user in self.__connections:
+
+            if user["online"] and self.__running:
+                yield user["address"], user["username"]
+
 
 
 

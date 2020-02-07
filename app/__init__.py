@@ -1,4 +1,5 @@
-from app.confirm import Confirm
+from app.popup.confirm import Confirm
+from app.popup.list import List
 from app.sound import SoundLoader
 from conn.client import Client
 from conn.server import Server
@@ -90,6 +91,9 @@ class Menu(Screen):
     de conexão e escolher entre criar ou conectar-se a um servidor.
     """
 
+    USERNAME_SIZE_LIMIT = 20
+
+
     def getInfo(self, validate = True):
 
         """
@@ -152,7 +156,12 @@ class Menu(Screen):
         """
 
         if username and not username.isspace():
+
+            # Limita o tamanho do nome de usuário.
+            if len(username) > self.USERNAME_SIZE_LIMIT:
+                username = username[: self.USERNAME_SIZE_LIMIT + 1 - 3] + "..."
             return username
+
         else:
             self.ids.username.text = "Enter your username"
             return None
@@ -218,6 +227,27 @@ class MessageBox(Screen):
             label = Label(text = message, font_size = "15dp", size_hint_y = None, height = "30dp", halign = "left")
             label.bind(size = label.setter('text_size'))  
             screen.ids.box.add_widget(label)
+
+
+    def showUsers(self):
+
+        """
+        Mostra uma lista com todos os usuários conectados (apenas no lado do servidor).
+        """
+
+        app = App.get_running_app()
+
+        if isinstance(app.connection, Server):
+
+            popup = List("Connected Users")
+
+            for user in app.connection.users:
+
+                address = "{}:{}".format(*user[0])
+                username = user[1]
+
+                popup.insertItem([username, address])
+            popup.open()
 
 
     def stop(self, *args, **kwargs):
